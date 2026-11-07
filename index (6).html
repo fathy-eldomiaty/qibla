@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>بوصلة القبلة</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;600&display=swap">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f1ea;--surf:#fff;--ink:#16302b;--mute:#5d726d;--line:#d6dcd6;--gold:#b8892b;--green:#1f7a5c;--ring:#e9ece6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0d1a17;--surf:#14262f;--ink:#e8efe9;--mute:#93aaa3;--line:#27413b;--gold:#e0b04f;--green:#3fc79a;--ring:#102420}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0d1a17;--surf:#14262f;--ink:#e8efe9;--mute:#93aaa3;--line:#27413b;--gold:#e0b04f;--green:#3fc79a;--ring:#102420}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Readex Pro",system-ui,"Segoe UI",Tahoma,sans-serif;min-height:100vh}
+main{max-width:460px;margin:0 auto;padding:20px 18px 32px}
+h1{font-size:1.25rem;font-weight:600;margin:4px 0 2px}
+.sub{color:var(--mute);font-size:.85rem;margin:0 0 18px}
+.stage{position:relative;width:min(86vw,360px);aspect-ratio:1;margin:0 auto}
+.dial{position:absolute;inset:0;border-radius:50%;background:var(--ring);border:2px solid var(--line);transition:transform .12s linear}
+.dial svg{width:100%;height:100%;display:block}
+.fix{position:absolute;inset:0;pointer-events:none}
+.lub{position:absolute;top:-6px;left:50%;width:0;height:0;margin-left:-9px;border:9px solid transparent;border-top:0;border-bottom:16px solid var(--ink)}
+.stage.ok .dial{border-color:var(--green);box-shadow:0 0 0 6px color-mix(in srgb,var(--green) 25%,transparent)}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.deg{font-size:2.6rem;font-weight:600;line-height:1}
+.state{font-size:.9rem;color:var(--mute);margin-top:6px;min-height:1.3em}
+.ok .state{color:var(--green);font-weight:600}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0 14px}
+.box{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.box b{display:block;font-size:1.1rem;margin-top:2px}
+.box span{font-size:.78rem;color:var(--mute)}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surf);color:var(--ink);padding:12px 14px;min-height:46px}
+button.main{background:var(--green);border-color:var(--green);color:#fff;font-weight:600;width:100%;margin-bottom:10px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.row{display:flex;gap:8px;margin-top:8px}
+input{font:inherit;flex:1;min-width:0;border-radius:10px;border:1px solid var(--line);background:var(--surf);color:var(--ink);padding:11px;direction:ltr;text-align:center}
+details{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px}
+summary{cursor:pointer;font-weight:600}
+.msg{font-size:.85rem;color:var(--mute);margin:10px 0 0;min-height:1.2em}
+.msg.err{color:#c0392b}
+.tip{font-size:.78rem;color:var(--mute);line-height:1.7;margin-top:16px}
+select{font:inherit;font-size:.8rem;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:6px}
+.pr{display:flex;justify-content:space-between;padding:9px 6px;border-bottom:1px solid var(--line)}
+.pr:last-child{border-bottom:0}
+.pr.nx{background:color-mix(in srgb,var(--green) 14%,transparent);border-radius:8px;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>بوصلة القبلة</h1>
+<p class="sub">اتجاه الكعبة المشرفة من موقعك بدقة، بحساب أقصر مسار على سطح الأرض.</p>
+
+<div class="stage" id="stage">
+  <div class="dial" id="dial">
+    <svg viewBox="-100 -100 200 200" aria-hidden="true" id="svg"></svg>
+  </div>
+  <div class="fix"><div class="lub"></div></div>
+  <div class="center"><div class="deg" id="deg">--°</div><div class="state" id="state">بانتظار الموقع</div></div>
+</div>
+
+<div class="grid">
+  <div class="box"><span>زاوية القبلة من الشمال</span><b id="bear">--</b></div>
+  <div class="box"><span>المسافة إلى الكعبة</span><b id="dist">--</b></div>
+  <div class="box"><span>موقعك</span><b id="loc" style="font-size:.9rem;direction:ltr;text-align:right">--</b></div>
+  <div class="box"><span>اتجاه الجهاز</span><b id="head">--</b></div>
+</div>
+
+<button class="main" id="start">تحديد موقعي وتشغيل البوصلة</button>
+<div class="row" style="margin:0 0 4px"><input id="city" list="cl" placeholder="أو ابحث عن مدينة بالاسم" autocomplete="off" style="direction:rtl"></div><datalist id="cl"></datalist>
+
+<details>
+  <summary>إدخال الإحداثيات يدويًا</summary>
+  <div class="row"><input id="lat" inputmode="decimal" placeholder="خط العرض 24.7136"><input id="lng" inputmode="decimal" placeholder="خط الطول 46.6753"></div>
+  <div class="row"><button id="manual" style="flex:1">احسب القبلة</button></div>
+</details>
+<p class="msg" id="msg" role="status"></p>
+
+<section class="box" style="margin-top:16px" aria-live="polite">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="margin:0">مواقيت الصلاة اليوم</b><select id="pm"><option value="mwl">رابطة العالم الإسلامي</option><option value="uq">أم القرى</option><option value="egy">الهيئة المصرية</option><option value="khi">كراتشي</option></select></div>
+<p class="msg" id="pnext" style="font-weight:600;color:var(--green)">حدد موقعك لعرض المواقيت</p>
+<div id="pt"></div>
+<button id="snd" style="width:100%;margin-top:10px">تفعيل التنبيه الصوتي</button>
+</section>
+<p class="tip">للحصول على أدق قراءة: ابعد الجهاز عن المعادن والمغناطيس، وامسكه أفقيًا، وحرّكه على شكل رقم 8 لمعايرة المستشعر. زاوية القبلة مقيسة من الشمال الحقيقي، وتتحول البوصلة تلقائيًا إلى الشمال الحقيقي على أجهزة آيفون وأندرويد الداعمة.</p>
+</main>
+
+<script>
+(function(){
+var KAABA={lat:21.422487,lng:39.826206};
+var R=6371.0088,rad=Math.PI/180,deg=180/Math.PI;
+var bearing=null,heading=null,smooth=null,wasOk=false;
+var $=function(i){return document.getElementById(i)};
+
+// build dial
+(function(){
+  var s='',i,a,x1,y1,x2,y2,len;
+  for(i=0;i<72;i++){a=i*5*rad;len=i%18===0?10:(i%6===0?7:3.5);
+    x1=Math.sin(a)*92;y1=-Math.cos(a)*92;x2=Math.sin(a)*(92-len);y2=-Math.cos(a)*(92-len);
+    s+='<line x1="'+x1.toFixed(2)+'" y1="'+y1.toFixed(2)+'" x2="'+x2.toFixed(2)+'" y2="'+y2.toFixed(2)+'" stroke="var(--mute)" stroke-width="'+(i%18===0?1.6:.8)+'"/>';}
+  var L=[['ش',0],['ق',90],['ج',180],['غ',270]];
+  L.forEach(function(l){var a=l[1]*rad;s+='<text x="'+(Math.sin(a)*68).toFixed(1)+'" y="'+(-Math.cos(a)*68+4).toFixed(1)+'" text-anchor="middle" font-size="12" font-weight="600" fill="'+(l[1]===0?'#c0392b':'var(--ink)')+'" font-family="Readex Pro,sans-serif">'+l[0]+'</text>';});
+  s+='<g id="qm"><line x1="0" y1="0" x2="0" y2="-52" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"/><circle cx="0" cy="0" r="4" fill="var(--gold)"/>'+
+     '<g transform="translate(0,-78)"><rect x="-11" y="-11" width="22" height="22" rx="3" fill="#15110d" stroke="var(--gold)" stroke-width="1.6"/><rect x="-11" y="-5" width="22" height="3.5" fill="var(--gold)"/></g></g>';
+  $('svg').innerHTML=s;
+})();
+
+function calc(lat,lng){
+  var p1=lat*rad,p2=KAABA.lat*rad,dl=(KAABA.lng-lng)*rad;
+  var y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
+  var b=(Math.atan2(y,x)*deg+360)%360;
+  var dp=(KAABA.lat-lat)*rad,a=Math.sin(dp/2)*Math.sin(dp/2)+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)*Math.sin(dl/2);
+  var d=2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  return {b:b,d:d};
+}
+var dirs=['شمال','شمال شرق','شرق','جنوب شرق','جنوب','جنوب غرب','غرب','شمال غرب'];
+function setLoc(lat,lng,acc,tz){
+  curTz=tz==null?-new Date().getTimezoneOffset()/60:tz;
+  if(isNaN(lat)||isNaN(lng)||Math.abs(lat)>90||Math.abs(lng)>180){msg('إحداثيات غير صالحة. خط العرض بين -90 و90، وخط الطول بين -180 و180.',1);return}
+  if(Math.abs(lat-KAABA.lat)<0.0005&&Math.abs(lng-KAABA.lng)<0.0005){msg('أنت عند الكعبة المشرفة، فالقبلة في كل الاتجاهات.');}
+  var r=calc(lat,lng);bearing=r.b;loc={lat:lat,lng:lng};showPrayers();try{localStorage.setItem('qb',JSON.stringify([lat,lng,curTz]))}catch(e){}
+  $('bear').textContent=r.b.toFixed(1)+'° '+dirs[Math.round(r.b/45)%8];
+  $('dist').textContent=Math.round(r.d).toLocaleString('ar-EG')+' كم';
+  $('loc').textContent=lat.toFixed(4)+', '+lng.toFixed(4);
+  if(acc)msg('دقة الموقع حوالي '+Math.round(acc)+' متر.');
+  render();
+}
+function msg(t,e){var m=$('msg');m.textContent=t;m.className='msg'+(e?' err':'')}
+function ang(a){return ((a%360)+360)%360}
+function diff(t,c){return ((t-c+540)%360)-180}
+
+function render(){
+  var st=$('stage');
+  if(bearing==null){return}
+  if(heading==null){
+    $('dial').style.transform='rotate(0deg)';
+    $('qm').setAttribute('transform','rotate('+bearing+')');
+    $('deg').textContent=Math.round(bearing)+'°';
+    $('state').textContent='البوصلة غير مفعّلة: الزاوية من الشمال';
+    return;
+  }
+  $('dial').style.transform='rotate('+(-heading)+'deg)';
+  $('qm').setAttribute('transform','rotate('+bearing+')');
+  var d=diff(bearing,heading),ok=Math.abs(d)<=3;
+  $('head').textContent=Math.round(heading)+'°';
+  $('deg').textContent=Math.round(Math.abs(d))+'°';
+  st.classList.toggle('ok',ok);
+  $('state').textContent=ok?'أنت باتجاه القبلة':(d>0?'در إلى اليمين':'در إلى اليسار');
+  if(ok&&!wasOk&&navigator.vibrate)navigator.vibrate(60);
+  wasOk=ok;
+}
+
+function onOrient(e){
+  var h=null;
+  if(typeof e.webkitCompassHeading==='number'&&!isNaN(e.webkitCompassHeading))h=e.webkitCompassHeading;
+  else if(e.alpha!=null&&(e.absolute||e.type==='deviceorientationabsolute'))h=360-e.alpha;
+  if(h==null)return;
+  var so=(screen.orientation&&screen.orientation.angle)||0;h=ang(h+so);
+  smooth=smooth==null?h:ang(smooth+diff(h,smooth)*0.25);
+  heading=smooth;render();
+}
+var listening=false;
+function startCompass(){
+  if(listening)return;
+  function bind(){
+    listening=true;
+    if('ondeviceorientationabsolute' in window)window.addEventListener('deviceorientationabsolute',onOrient,true);
+    else window.addEventListener('deviceorientation',onOrient,true);
+    setTimeout(function(){if(heading==null)msg('لم يتم استقبال قراءات البوصلة. اتبع السهم الذهبي مع تحديد الشمال يدويًا، أو افتح الصفحة على هاتف.',1)},2500);
+  }
+  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission().then(function(r){if(r==='granted')bind();else msg('تم رفض إذن المستشعر. فعّله من إعدادات المتصفح.',1)}).catch(function(){msg('تعذّر طلب إذن المستشعر.',1)});
+  }else bind();
+}
+
+var loc=null,curTz=0;
+var CITIES=[["مكة المكرمة",21.3891,39.8579,3],["المدينة المنورة",24.4672,39.6111,3],["الرياض",24.7136,46.6753,3],["جدة",21.4858,39.1925,3],["الدمام",26.4207,50.0888,3],["القاهرة",30.0444,31.2357,2],["الإسكندرية",31.2001,29.9187,2],["الخرطوم",15.5007,32.5599,2],["دبي",25.2048,55.2708,4],["أبوظبي",24.4539,54.3773,4],["الدوحة",25.2854,51.531,3],["الكويت",29.3759,47.9774,3],["المنامة",26.2285,50.586,3],["مسقط",23.588,58.3829,4],["صنعاء",15.3694,44.191,3],["عدن",12.7855,45.0187,3],["بغداد",33.3152,44.3661,3],["دمشق",33.5138,36.2765,3],["بيروت",33.8938,35.5018,2],["عمّان",31.9454,35.9284,3],["القدس",31.7683,35.2137,2],["غزة",31.5017,34.4668,2],["طرابلس",32.8872,13.1913,2],["تونس",36.8065,10.1815,1],["الجزائر",36.7538,3.0588,1],["الرباط",34.0209,-6.8416,1],["الدار البيضاء",33.5731,-7.5898,1],["نواكشوط",18.0735,-15.9582,0],["إسطنبول",41.0082,28.9784,3],["أنقرة",39.9334,32.8597,3],["طهران",35.6892,51.389,3.5],["إسلام آباد",33.6844,73.0479,5],["كراتشي",24.8607,67.0011,5],["دكا",23.8103,90.4125,6],["جاكرتا",-6.2088,106.8456,7],["كوالالمبور",3.139,101.6869,8],["لندن",51.5074,-0.1278,0],["باريس",48.8566,2.3522,1],["نيويورك",40.7128,-74.006,-5],["تورنتو",43.6532,-79.3832,-5]];
+$('cl').innerHTML=CITIES.map(function(c){return '<option value="'+c[0]+'">'}).join('');
+$('city').addEventListener('input',function(){
+  var v=this.value.trim(),c=CITIES.filter(function(x){return x[0]===v})[0];
+  if(c){startCompass();setLoc(c[1],c[2],null,c[3]);msg('تم اختيار '+c[0]+'. المدن تعتمد التوقيت القياسي.');}
+});
+var PM={mwl:[18,17,0],uq:[18.5,0,90],egy:[19.5,17.5,0],khi:[18,18,0]};
+function T(a,lat,dec){var c=(Math.sin(a*rad)-Math.sin(lat*rad)*Math.sin(dec))/(Math.cos(lat*rad)*Math.cos(dec));return (c<-1||c>1)?NaN:Math.acos(c)*deg/15}
+function fmt(h){if(isNaN(h))return '--';var m=Math.round((((h%24)+24)%24)*60)%1440,hh=Math.floor(m/60),mm=m%60,ap=hh>=12?'م':'ص';hh=hh%12||12;return hh.toLocaleString('ar-EG')+':'+mm.toLocaleString('ar-EG',{minimumIntegerDigits:2})+' '+ap}
+function times(lat,lng,tz,m){
+  var n=new Date(),D=Date.UTC(n.getFullYear(),n.getMonth(),n.getDate(),12)/864e5+2440587.5-2451545;
+  var g=(357.529+0.98560028*D)*rad,q=280.459+0.98564736*D,L=(q+1.915*Math.sin(g)+0.02*Math.sin(2*g))*rad,e=(23.439-3.6e-7*D)*rad;
+  var RA=(((Math.atan2(Math.cos(e)*Math.sin(L),Math.cos(L))*deg/15)%24)+24)%24,qh=(((q/15)%24)+24)%24,eq=qh-RA;
+  if(eq>12)eq-=24;if(eq<-12)eq+=24;
+  var dec=Math.asin(Math.sin(e)*Math.sin(L)),noon=12+tz-lng/15-eq,
+  asrA=Math.atan(1/(1+Math.tan(Math.abs(lat*rad-dec))))*deg,mg=noon+T(-0.833,lat,dec);
+  return [['الفجر',noon-T(-m[0],lat,dec),1],['الشروق',noon-T(-0.833,lat,dec),0],['الظهر',noon,1],['العصر',noon+T(asrA,lat,dec),1],['المغرب',mg,1],['العشاء',m[2]?mg+m[2]/60:noon+T(-m[1],lat,dec),1]];
+}
+function showPrayers(){
+  if(!loc)return;
+  var t=times(loc.lat,loc.lng,curTz,PM[$('pm').value]),n=new Date(),now=n.getUTCHours()+n.getUTCMinutes()/60+curTz,nx=-1,i;
+  now=((now%24)+24)%24;
+  for(i=0;i<t.length;i++){if(t[i][2]&&!isNaN(t[i][1])&&t[i][1]>now){nx=i;break}}
+  var tgt=nx>=0?t[nx][1]:t[0][1]+24,nm=nx>=0?t[nx][0]:'الفجر';
+  $('pt').innerHTML=t.map(function(r,k){return '<div class="pr'+(k===nx||(nx<0&&k===0)?' nx':'')+'"><span>'+r[0]+'</span><span>'+fmt(r[1])+'</span></div>'}).join('');
+  if(isNaN(tgt)){$('pnext').textContent='لا تتوفر مواقيت دقيقة عند خطوط العرض العالية.';return}
+  var d=Math.round((tgt-now)*60),h=Math.floor(d/60),mi=d%60;
+  $('pnext').textContent='الصلاة القادمة: '+nm+' بعد '+(h?h.toLocaleString('ar-EG')+' ساعة و':'')+mi.toLocaleString('ar-EG')+' دقيقة';
+}
+var actx=null,alertOn=false,fired={};
+function tone(){
+  if(!actx)return;
+  [523,659,784,659,523,659,784,1047].forEach(function(f,i){
+    var o=actx.createOscillator(),g=actx.createGain(),t0=actx.currentTime+i*0.6;
+    o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(0.0001,t0);g.gain.linearRampToValueAtTime(0.35,t0+0.06);g.gain.exponentialRampToValueAtTime(0.001,t0+0.55);
+    o.connect(g);g.connect(actx.destination);o.start(t0);o.stop(t0+0.6);
+  });
+  if(navigator.vibrate)navigator.vibrate([250,120,250,120,250]);
+}
+$('snd').addEventListener('click',function(){
+  if(!alertOn){
+    try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();}catch(e){msg('المتصفح لا يدعم التنبيه الصوتي.',1);return}
+    alertOn=true;tone();this.textContent='إيقاف التنبيه الصوتي';
+    msg('التنبيه مفعّل. أبقِ هذه الصفحة مفتوحة والشاشة تعمل ليصدر الصوت عند دخول الوقت.');
+  }else{alertOn=false;this.textContent='تفعيل التنبيه الصوتي';msg('تم إيقاف التنبيه الصوتي.');}
+});
+setInterval(function(){
+  if(!alertOn||!loc)return;
+  var t=times(loc.lat,loc.lng,curTz,PM[$('pm').value]),n=new Date(),
+  nm=Math.floor((((n.getUTCHours()+n.getUTCMinutes()/60+curTz)%24+24)%24)*60);
+  t.forEach(function(r){
+    if(!r[2]||isNaN(r[1]))return;
+    var k=n.toDateString()+r[0];
+    if(!fired[k]&&nm===Math.round((((r[1]%24)+24)%24)*60)%1440){
+      fired[k]=1;tone();$('pnext').textContent='حان الآن موعد صلاة '+r[0];
+    }
+  });
+},5000);
+try{var sv=JSON.parse(localStorage.getItem('qb'));if(sv&&sv.length===3)setLoc(sv[0],sv[1],null,sv[2]);}catch(e){}
+$('pm').addEventListener('change',showPrayers);
+setInterval(showPrayers,30000);
+$('start').addEventListener('click',function(){
+  startCompass();
+  if(!navigator.geolocation){msg('المتصفح لا يدعم تحديد الموقع. أدخل الإحداثيات يدويًا.',1);return}
+  msg('جارٍ تحديد موقعك...');
+  navigator.geolocation.getCurrentPosition(function(p){setLoc(p.coords.latitude,p.coords.longitude,p.coords.accuracy)},
+    function(){$('city').focus();msg('تعذّر تحديد الموقع. اسمح للمتصفح بالوصول إلى الموقع أو أدخل الإحداثيات يدويًا.',1)},
+    {enableHighAccuracy:true,timeout:15000,maximumAge:30000});
+});
+$('manual').addEventListener('click',function(){
+  startCompass();
+  setLoc(parseFloat($('lat').value.replace(',','.')),parseFloat($('lng').value.replace(',','.')));
+});
+})();
+</script>
+</body>
+</html>
